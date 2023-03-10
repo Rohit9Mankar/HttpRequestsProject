@@ -3,3 +3,23 @@
   margin: 0;
   padding: 0;
 }
+.form{
+  
+  display: block;
+}
+.contain{
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding:10px;
+ 
+}
+.contain input{
+  border-radius: 5px;
+  width:100%;
+  padding:10px;
+  border:2px solid rgb(9, 9, 112)
+}
+.contain label{
+  padding:5px;
+}
