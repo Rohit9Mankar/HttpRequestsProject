@@ -1,9 +1,9 @@
 import React from "react";
 import classes from './MoviesList.module.css';
-const MovieForm = () => {
+const MovieForm = (props) => {
 
 
-    const submitFormHandler = (event) => {
+    const submitFormHandler =(event) => {
         event.preventDefault();
         const movietitle = document.getElementById("form_title").value;
         const movieopeningText = document.getElementById("form_opening").value;
@@ -15,8 +15,10 @@ const MovieForm = () => {
             releaseDate: moviereleaseDate
 
         }
-        console.log(newMovie);
-    }
+        props.onAddMovie(newMovie);
+    };
+
+   
 
     return (
         <form onSubmit={submitFormHandler}>

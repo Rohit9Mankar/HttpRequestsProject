@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import MoviesList from './components/MoviesList';
 import './App.css';
@@ -9,43 +9,32 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setIsError] = useState(null);
 
-  let intervalId;
-  async function fetchMoviesHandler() {
+
+  const fetchMoviesHandler = useCallback(async () => {
     setIsLoading(true);
     setIsError(null);
     try {
-      const response = await fetch("https://swapi.dev/api/films/");
+      const response = await fetch("https://reacthttpsrequests-default-rtdb.firebaseio.com/movies.json");
       if (!response.ok) {
-
-        //intervalId= setInterval(()=>{
-        //    fetch("https://swapi.dev/api/fils/")
-        // },5000);
 
         throw new Error('Something went Wrong, Retrying..');
 
       }
 
       const data = await response.json();
+      const loadedMovies = [];
 
+      for (const key in data) {
+        localStorage.setItem("newId", key);
+        loadedMovies.push({
+          id: key,
+          title: data[key].title,
+          openingText: data[key].openingText,
+          releaseDate: data[key].releaseDate
+        });
+      }
 
-
-      const transformed = await data.results.map((movieData) => {
-        localStorage.setItem("movieId", movieData.episode_id)
-        return {
-          id: movieData.episode_id,
-          title: movieData.title,
-          openingText: movieData.opening_crawl,
-          releaseDate: movieData.release_date
-        };
-
-      })
-      // fetch('https://crudcrud.com/api/40d913e1a287437cb224f4e880b74337',
-      // {
-      //   method: 'POST',
-      //   body:response
-      // })
-
-      setMovies(transformed);
+      setMovies(loadedMovies);
 
 
     }
@@ -56,34 +45,39 @@ function App() {
     }
 
     setIsLoading(false);
-  }
-
-  function removeHandler() {
-    return () => clearInterval(intervalId);
-  }
-
-  useEffect(() => {
-    fetch("https://swapi.dev/api/films/")
-      .then(response => {
-        return response.json()
-      })
-      .then((data) => {
-        const transformedMovies =  data.results.map((movieData) => {
-          //localStorage.setItem("movieId", movieData.episode_id)
-          return {
-            id: movieData.episode_id,
-            title: movieData.title,
-            openingText: movieData.opening_crawl,
-            releaseDate: movieData.release_date
-          };
-          
-        })
-        setMovies(transformedMovies);
-      })
-      
   }, []);
 
 
+
+  function removeHandler() {
+    const toBeDeletedId = localStorage.getItem("newId");
+
+    console.log(toBeDeletedId)
+
+    fetch(`https://reacthttpsrequests-default-rtdb.firebaseio.com/movies/${toBeDeletedId}.json`, {
+      method: 'DELETE'
+    }).then(() => console.log('Delete successful'));
+
+    fetchMoviesHandler();
+  }
+
+  useEffect(() => {
+    fetchMoviesHandler();
+  }
+    , [fetchMoviesHandler]);
+
+  async function addMovieHandler(newFilm) {
+    const response = await fetch('https://reacthttpsrequests-default-rtdb.firebaseio.com/movies.json', {
+      method: 'POST',
+      body: JSON.stringify(newFilm),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    const dat = await response.json();
+    console.log(dat);
+
+  }
 
 
 
@@ -101,11 +95,11 @@ function App() {
   return (
     <React.Fragment>
       <section>
-        <MovieForm/>
+        <MovieForm onAddMovie={addMovieHandler} />
       </section>
       <section>
         <button onClick={fetchMoviesHandler}>Fetch Movies</button>
-        <button onClick={removeHandler}>Cancel</button>
+        <button onClick={removeHandler}>Delete</button>
       </section>
       <section>
         {content}
